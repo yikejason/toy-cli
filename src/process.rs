@@ -5,14 +5,12 @@ use csv::Reader;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
 struct Player {
-    #[serde(rename = "Name")]
     name: String,
-    #[serde(rename = "Position")]
     position: String,
     #[serde(rename = "DOB")]
     dob: String,
-    #[serde(rename = "Nationality")]
     nationality: String,
     #[serde(rename = "Kit Number")]
     kit: String,
