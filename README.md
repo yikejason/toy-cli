@@ -1,0 +1,3 @@
+- Rust 编写命令行工具 使用 clap 这个库
+- 读取 csv 使用 csv 这个库
+- 序列化和反序列化使用 serde 反序列化是将标准的传输格式如 yaml json xml csv 反序列化成特定的 rust 数据结构如   struct 序列化是将 rust 特定的数据结构 转成 json csv ...
