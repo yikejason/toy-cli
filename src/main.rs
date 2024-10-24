@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use toy_cli::{process_csv, Opts, SubCommand};
+use toy_cli::{process_csv, process_genpass, Opts, SubCommand};
 
 fn main() -> Result<()> {
     let opts: Opts = Opts::parse();
@@ -11,6 +11,16 @@ fn main() -> Result<()> {
                 None => format!("output.{}", opts.format),
             };
             process_csv(&opts.input, output, opts.format)?;
+        }
+        SubCommand::GenPass(opts) => {
+            // implement genpass functionality
+            process_genpass(
+                opts.length,
+                opts.uppercase,
+                opts.lowercase,
+                opts.number,
+                opts.symbol,
+            )?
         }
     }
 
