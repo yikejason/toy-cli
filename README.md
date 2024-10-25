@@ -14,3 +14,11 @@
 - rand 中的 choose 方法 从 切片或者数组选个来随机
 - String::from_utf8（） 把 Vec<u8> 转成 String
 - zxcbvn 验证密码强度的库
+
+# support base64 encode/decode cli
+- base64 中的 padding 指的是位数不够进行字节的填充= = STANDARD(位数不够需要填充) URL_SAFE_NO_PAD（位数不够不需要填充  详细见 base64 crate
+
+- cargo run -- base64 encode --format urlsafe -i cargo.toml > fixtures/b64.txt 输出编码文件到 fixtures/b64.txt
+
+- impl From<T> for U {}  U 转化成 T 就可以使用 U.into()
+- impl FromStr for T  input: &str的数据类型转换成 T 就可以使用  input::parse()
