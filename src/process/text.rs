@@ -157,3 +157,18 @@ impl Ed25519Verifier {
         Self::try_new(&key)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_blake3_sign_verify() -> Result<()> {
+        let blake3 = Blake3::load("fixtures/blake3.txt")?;
+
+        let data = b"hello world";
+        let sig = blake3.sign(&mut &data[..])?;
+        assert!(blake3.verify(&data[..], &sig)?);
+        Ok(())
+    }
+}
