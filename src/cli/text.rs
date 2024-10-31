@@ -1,7 +1,9 @@
+use clap::Parser;
 use std::{fmt, path::PathBuf, str::FromStr};
 
 use super::{verify_file, verify_path};
-use clap::Parser;
+
+use crate::{parse_format_base64, Base64Format};
 
 #[derive(Debug, Parser)]
 pub enum TextSubcommand {
@@ -11,6 +13,10 @@ pub enum TextSubcommand {
     Verify(TextVerifyOpts),
     #[command(about = "Generate a new key")]
     Generate(TextKeyGenerateOpts),
+    #[command(about = "encrypt a message")]
+    Encrypt(TextEncryptOpts),
+    #[command(about = "decrypt an encrypted message")]
+    Decrypt(TextDecryptOpts),
 }
 
 #[derive(Debug, Parser)]
@@ -41,6 +47,30 @@ pub struct TextKeyGenerateOpts {
     pub format: TextSignFormat,
     #[arg(long, short, value_parser = verify_path)]
     pub output: PathBuf,
+}
+
+#[derive(Debug, Parser)]
+pub struct TextEncryptOpts {
+    #[arg(short, long, value_parser = verify_file, default_value = "_")]
+    pub input: String,
+    #[arg(short, long)]
+    pub key: String,
+    #[arg(short, long)]
+    pub nonce: String,
+    #[arg(long, default_value = "standard", value_parser = parse_format_base64)]
+    pub format: Base64Format,
+}
+
+#[derive(Debug, Parser)]
+pub struct TextDecryptOpts {
+    #[arg(short, long, value_parser = verify_file, default_value = "_")]
+    pub input: String,
+    #[arg(short, long)]
+    pub key: String,
+    #[arg(short, long)]
+    nonce: String,
+    #[arg(long, default_value = "standard", value_parser = parse_format_base64)]
+    pub format: Base64Format,
 }
 
 #[derive(Debug, Clone, Copy)]

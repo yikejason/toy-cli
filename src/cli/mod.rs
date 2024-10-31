@@ -6,7 +6,7 @@ mod text;
 use self::{csv_opts::CsvOpts, genpass::GenPassOpts};
 
 pub use self::{
-    base64::{Base64Format, Base64Subcommand},
+    base64::{parse_format_base64, Base64Format, Base64Subcommand},
     csv_opts::OutputFormat,
     text::{TextSignFormat, TextSubcommand},
 };

@@ -33,7 +33,7 @@ pub enum Base64Format {
     UrlSafe,
 }
 
-fn parse_format_base64(format: &str) -> Result<Base64Format, anyhow::Error> {
+pub fn parse_format_base64(format: &str) -> Result<Base64Format, anyhow::Error> {
     format.parse()
 }
 

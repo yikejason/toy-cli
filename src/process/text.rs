@@ -1,8 +1,15 @@
 use std::{fs, io::Read, path::Path};
 
-use crate::{get_reader, TextSignFormat};
+use crate::{get_reader, Base64Format, TextSignFormat};
 use anyhow::Result;
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+use base64::{
+    engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD},
+    Engine as _,
+};
+use chacha20poly1305::{
+    aead::{Aead, KeyInit},
+    ChaCha20Poly1305, Key, Nonce,
+};
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use rand::rngs::OsRng;
 
@@ -20,6 +27,10 @@ pub trait KeyGenerator {
     fn generate() -> Result<Vec<Vec<u8>>>;
 }
 
+pub trait TextEncypt {
+    fn encrypt(&self, reader: &mut dyn Read, format: Base64Format) -> Result<String>;
+}
+
 pub struct Blake3 {
     key: [u8; 32],
 }
@@ -30,6 +41,11 @@ pub struct Ed25519Signer {
 
 pub struct Ed25519Verifier {
     key: VerifyingKey,
+}
+
+pub struct ChaCha20 {
+    key: [u8; 32],
+    nonce: [u8; 12],
 }
 
 pub fn process_text_sign(input: &str, key: &str, format: TextSignFormat) -> Result<String> {
@@ -77,6 +93,39 @@ pub fn process_text_generate(format: TextSignFormat) -> Result<Vec<Vec<u8>>> {
     match format {
         TextSignFormat::Blake3 => Blake3::generate(),
         TextSignFormat::Ed25519 => Ed25519Signer::generate(),
+    }
+}
+
+pub fn process_text_encypt(
+    input: &str,
+    key: &str,
+    nonce: &str,
+    format: Base64Format,
+) -> Result<String> {
+    let mut reader = get_reader(input)?;
+    let chacha20 = ChaCha20::load(key, nonce)?;
+    let encrypted = chacha20.encrypt(&mut reader, format)?;
+
+    Ok(encrypted)
+}
+
+impl TextEncypt for ChaCha20 {
+    fn encrypt(&self, reader: &mut dyn Read, format: Base64Format) -> Result<String> {
+        let mut buf = Vec::new();
+        reader.read_to_end(&mut buf)?;
+
+        let cipher = ChaCha20Poly1305::new(Key::from_slice(&self.key));
+        let ciphertext = cipher.encrypt(Nonce::from_slice(&self.nonce), buf.as_ref());
+
+        let ret = match ciphertext.is_ok() {
+            true => match format {
+                Base64Format::Standard => STANDARD.encode(ciphertext.unwrap()),
+                Base64Format::UrlSafe => URL_SAFE_NO_PAD.encode(ciphertext.unwrap()),
+            },
+            false => anyhow::bail!("failed to encrypt"),
+        };
+
+        Ok(ret)
     }
 }
 
@@ -166,6 +215,26 @@ impl Ed25519Verifier {
     pub fn load(path: impl AsRef<Path>) -> Result<Self> {
         let key = fs::read(path)?;
         Self::try_new(&key)
+    }
+}
+
+impl ChaCha20 {
+    pub fn new(key: [u8; 32], nonce: [u8; 12]) -> Self {
+        Self { key, nonce }
+    }
+
+    pub fn try_new(key: &[u8], nonce: &[u8]) -> Result<Self> {
+        let key = &key[..32];
+        let nonce = &nonce[..12];
+        let key = key.try_into()?;
+        let nonce = nonce.try_into()?;
+        Ok(Self::new(key, nonce))
+    }
+
+    pub fn load(key: impl AsRef<Path>, nonce: impl AsRef<Path>) -> Result<Self> {
+        let key = fs::read(key)?;
+        let nonce = fs::read(nonce)?;
+        Self::try_new(&key, &nonce)
     }
 }
 

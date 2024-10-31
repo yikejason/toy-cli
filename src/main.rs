@@ -4,8 +4,8 @@ use anyhow::Result;
 use clap::Parser;
 use toy_cli::{
     process_base64_decode, process_base64_encode, process_csv, process_genpass,
-    process_text_generate, process_text_sign, process_text_verify, Base64Subcommand, Opts,
-    SubCommand, TextSignFormat, TextSubcommand,
+    process_text_encypt, process_text_generate, process_text_sign, process_text_verify,
+    Base64Subcommand, Opts, SubCommand, TextSignFormat, TextSubcommand,
 };
 use zxcvbn::zxcvbn;
 
@@ -66,6 +66,14 @@ fn main() -> Result<()> {
                         fs::write(name.join("ed25519.pk"), &key[1])?;
                     }
                 }
+            }
+            TextSubcommand::Encrypt(opts) => {
+                let encrypted =
+                    process_text_encypt(&opts.input, &opts.key, &opts.nonce, opts.format)?;
+                println!("{}", encrypted)
+            }
+            TextSubcommand::Decrypt(opts) => {
+                println!("{:?}", opts)
             }
         },
     }
