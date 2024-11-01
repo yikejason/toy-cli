@@ -6,7 +6,7 @@ authors = ["jason tian <18215513386@163.com>"]
 
 
 [dependencies]
-anyhow = "1.0.91"
+anyhow = "1.0.92"
 base64 = "0.22.1"
 blake3 = "1.5.4"
 chacha20poly1305 = "0.10.1"

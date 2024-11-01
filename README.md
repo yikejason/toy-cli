@@ -22,3 +22,8 @@
 
 - impl From<T> for U {}  U 转化成 T 就可以使用 U.into()
 - impl FromStr for T  input: &str的数据类型转换成 T 就可以使用  input::parse()
+
+# blake3  Ed25519-dealk ChaCha20Poly1305
+- blake3  hash function
+- Ed25519-dealk 非对称加密
+- ChaCha20Poly1305  对称加密
