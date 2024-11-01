@@ -47,7 +47,7 @@ mod tests {
     }
     #[test]
     fn test_process_base64_decode() {
-        let input = "fixtures/b64.txt";
+        let input = "fixtures/hello_encode.txt";
         let format = Base64Format::UrlSafe;
         assert!(process_base64_decode(input, format).is_ok());
     }
