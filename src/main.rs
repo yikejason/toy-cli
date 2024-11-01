@@ -4,8 +4,8 @@ use anyhow::Result;
 use clap::Parser;
 use toy_cli::{
     process_base64_decode, process_base64_encode, process_csv, process_genpass,
-    process_text_encypt, process_text_generate, process_text_sign, process_text_verify,
-    Base64Subcommand, Opts, SubCommand, TextSignFormat, TextSubcommand,
+    process_text_decrypt, process_text_encypt, process_text_generate, process_text_sign,
+    process_text_verify, Base64Subcommand, Opts, SubCommand, TextSignFormat, TextSubcommand,
 };
 use zxcvbn::zxcvbn;
 
@@ -73,7 +73,9 @@ fn main() -> Result<()> {
                 println!("{}", encrypted)
             }
             TextSubcommand::Decrypt(opts) => {
-                println!("{:?}", opts)
+                let decrypted =
+                    process_text_decrypt(&opts.input, &opts.key, &opts.nonce, opts.format)?;
+                println!("{:?}", decrypted)
             }
         },
     }

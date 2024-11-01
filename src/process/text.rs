@@ -31,6 +31,10 @@ pub trait TextEncypt {
     fn encrypt(&self, reader: &mut dyn Read, format: Base64Format) -> Result<String>;
 }
 
+pub trait TextDecrypt {
+    fn decrypt(&self, reader: &mut dyn Read, format: Base64Format) -> Result<String>;
+}
+
 pub struct Blake3 {
     key: [u8; 32],
 }
@@ -103,10 +107,25 @@ pub fn process_text_encypt(
     format: Base64Format,
 ) -> Result<String> {
     let mut reader = get_reader(input)?;
+
     let chacha20 = ChaCha20::load(key, nonce)?;
     let encrypted = chacha20.encrypt(&mut reader, format)?;
 
     Ok(encrypted)
+}
+
+pub fn process_text_decrypt(
+    input: &str,
+    key: &str,
+    nonce: &str,
+    format: Base64Format,
+) -> Result<String> {
+    let mut reader = get_reader(input)?;
+
+    let chacha20 = ChaCha20::load(key, nonce)?;
+    let decrypted = chacha20.decrypt(&mut reader, format)?;
+
+    Ok(decrypted)
 }
 
 impl TextEncypt for ChaCha20 {
@@ -123,6 +142,30 @@ impl TextEncypt for ChaCha20 {
                 Base64Format::UrlSafe => URL_SAFE_NO_PAD.encode(ciphertext.unwrap()),
             },
             false => anyhow::bail!("failed to encrypt"),
+        };
+
+        Ok(ret)
+    }
+}
+
+impl TextDecrypt for ChaCha20 {
+    fn decrypt(&self, reader: &mut dyn Read, format: Base64Format) -> Result<String> {
+        let mut buf = String::new();
+        reader.read_to_string(&mut buf)?;
+
+        let buf = buf.trim();
+
+        let cipher_decode = match format {
+            Base64Format::Standard => STANDARD.decode(buf)?,
+            Base64Format::UrlSafe => URL_SAFE_NO_PAD.decode(buf)?,
+        };
+
+        let cipher = ChaCha20Poly1305::new(Key::from_slice(&self.key));
+        let plaintext = cipher.decrypt(Nonce::from_slice(&self.nonce), cipher_decode.as_ref());
+
+        let ret = match plaintext.is_ok() {
+            true => String::from_utf8_lossy(&plaintext.unwrap()).into(),
+            false => anyhow::bail!("failed to decrypt"),
         };
 
         Ok(ret)
@@ -259,7 +302,6 @@ impl KeyGenerator for Ed25519Signer {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_blake3_sign_verify() -> Result<()> {
         let blake3 = Blake3::load("fixtures/blake3.txt")?;
@@ -278,6 +320,24 @@ mod tests {
         let data = b"hello world";
         let sig = sk.sign(&mut &data[..])?;
         assert!(pk.verify(&data[..], &sig)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_chacha20_encrypt_decrypt() -> Result<()> {
+        let chacha20 = ChaCha20::load("fixtures/chacha20_key.txt", "fixtures/chacha20_nonce.txt")?;
+
+        let key = Key::from_slice(&chacha20.key);
+        let nonce = Nonce::from_slice(&chacha20.nonce);
+
+        let cipher = ChaCha20Poly1305::new(key);
+
+        let text = b"hello";
+        let ciphertext = cipher.encrypt(nonce, text.as_ref()).unwrap();
+        let plaintext = cipher.decrypt(nonce, ciphertext.as_ref()).unwrap();
+
+        assert_eq!(&plaintext, text);
+
         Ok(())
     }
 }

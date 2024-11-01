@@ -68,7 +68,7 @@ pub struct TextDecryptOpts {
     #[arg(short, long)]
     pub key: String,
     #[arg(short, long)]
-    nonce: String,
+    pub nonce: String,
     #[arg(long, default_value = "standard", value_parser = parse_format_base64)]
     pub format: Base64Format,
 }
