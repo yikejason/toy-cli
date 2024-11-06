@@ -1,15 +1,17 @@
-use std::fs;
-
 use anyhow::Result;
 use clap::Parser;
+use std::fs;
 use toy_cli::{
-    process_base64_decode, process_base64_encode, process_csv, process_genpass,
+    process_base64_decode, process_base64_encode, process_csv, process_genpass, process_http_serve,
     process_text_decrypt, process_text_encypt, process_text_generate, process_text_sign,
-    process_text_verify, Base64Subcommand, Opts, SubCommand, TextSignFormat, TextSubcommand,
+    process_text_verify, Base64Subcommand, HttpSubcommand, Opts, SubCommand, TextSignFormat,
+    TextSubcommand,
 };
 use zxcvbn::zxcvbn;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
+    tracing_subscriber::fmt::init();
     let opts: Opts = Opts::parse();
     match opts.cmd {
         SubCommand::Csv(opts) => {
@@ -76,6 +78,11 @@ fn main() -> Result<()> {
                 let decrypted =
                     process_text_decrypt(&opts.input, &opts.key, &opts.nonce, opts.format)?;
                 println!("{:?}", decrypted)
+            }
+        },
+        SubCommand::Http(subcommand) => match subcommand {
+            HttpSubcommand::Serve(opts) => {
+                process_http_serve(opts.dir, opts.port).await?;
             }
         },
     }

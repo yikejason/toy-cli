@@ -1,9 +1,7 @@
+use super::{verify_file, verify_path};
+use crate::{parse_format_base64, Base64Format};
 use clap::Parser;
 use std::{fmt, path::PathBuf, str::FromStr};
-
-use super::{verify_file, verify_path};
-
-use crate::{parse_format_base64, Base64Format};
 
 #[derive(Debug, Parser)]
 pub enum TextSubcommand {
