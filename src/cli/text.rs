@@ -1,5 +1,8 @@
 use super::{verify_file, verify_path};
-use crate::{parse_format_base64, Base64Format};
+use crate::{
+    parse_format_base64, process_text_decrypt, process_text_encypt, process_text_generate,
+    process_text_sign, process_text_verify, Base64Format, CmdExecutor,
+};
 use clap::Parser;
 use std::{fmt, path::PathBuf, str::FromStr};
 
@@ -104,5 +107,67 @@ impl FromStr for TextSignFormat {
 impl fmt::Display for TextSignFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", Into::<&str>::into(*self))
+    }
+}
+
+impl CmdExecutor for TextSignOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let sig = process_text_sign(&self.input, &self.key, self.format)?;
+        println!("{}", sig);
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextVerifyOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let verified = process_text_verify(&self.input, &self.key, &self.sig, self.format)?;
+        println!("{}", verified);
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextKeyGenerateOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let key = process_text_generate(self.format)?;
+        match self.format {
+            TextSignFormat::Blake3 => {
+                let name = self.output.join("blake3.txt");
+                tokio::fs::write(name, &key[0]).await?;
+            }
+            TextSignFormat::Ed25519 => {
+                let name = self.output;
+                tokio::fs::write(name.join("ed25519.sk"), &key[0]).await?;
+                tokio::fs::write(name.join("ed25519.pk"), &key[1]).await?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextEncryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let encrypted = process_text_encypt(&self.input, &self.key, &self.nonce, self.format)?;
+        println!("{}", encrypted);
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextDecryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let decrypted = process_text_decrypt(&self.input, &self.key, &self.nonce, self.format)?;
+        println!("{}", decrypted);
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextSubcommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            TextSubcommand::Sign(opts) => opts.execute().await,
+            TextSubcommand::Verify(opts) => opts.execute().await,
+            TextSubcommand::Generate(opts) => opts.execute().await,
+            TextSubcommand::Encrypt(opts) => opts.execute().await,
+            TextSubcommand::Decrypt(opts) => opts.execute().await,
+        }
     }
 }

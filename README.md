@@ -27,3 +27,7 @@
 - blake3  hash function
 - Ed25519-dealk 非对称加密
 - ChaCha20Poly1305  对称加密
+
+### tower-http 一系列中间件的处理
+- 可自动返回文件的content-type
+- cargo install --path . 把包安装在cargo的根目录下

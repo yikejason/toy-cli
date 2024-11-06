@@ -96,7 +96,7 @@ mod tests {
         let mut body_stream = response.into_body().into_data_stream();
         let mut content = String::new();
         while let Some(Ok(chunk)) = body_stream.next().await {
-            content.push_str(&String::from_utf8(chunk.to_vec()).unwrap());
+            content.push_str(core::str::from_utf8(&chunk).unwrap());
         }
         assert!(content.trim().starts_with("[package]"));
     }
