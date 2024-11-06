@@ -1,6 +1,6 @@
 ### test static file
 
-GET http://localhost:8080/fixtures/ed25519.pk
+GET http://localhost:8080/fixtures
 
 ### test static file for tower http
 
