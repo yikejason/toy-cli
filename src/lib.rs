@@ -2,14 +2,14 @@ mod cli;
 mod process;
 mod utils;
 
-pub use cli::{
-    parse_format_base64, Base64Format, Base64Subcommand, HttpSubcommand, Opts, OutputFormat,
-    SubCommand, TextSignFormat, TextSubcommand,
-};
+pub use cli::*;
 pub use process::*;
 pub use utils::*;
 
+use enum_dispatch::enum_dispatch;
+
 #[allow(async_fn_in_trait)]
+#[enum_dispatch]
 pub trait CmdExecutor {
     async fn execute(self) -> anyhow::Result<()>;
 }

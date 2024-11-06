@@ -4,9 +4,11 @@ use crate::{
     process_text_sign, process_text_verify, Base64Format, CmdExecutor,
 };
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 use std::{fmt, path::PathBuf, str::FromStr};
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExecutor)]
 pub enum TextSubcommand {
     #[command(about = "sign a message with a private and return a signature ")]
     Sign(TextSignOpts),
@@ -157,17 +159,5 @@ impl CmdExecutor for TextDecryptOpts {
         let decrypted = process_text_decrypt(&self.input, &self.key, &self.nonce, self.format)?;
         println!("{}", decrypted);
         Ok(())
-    }
-}
-
-impl CmdExecutor for TextSubcommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            TextSubcommand::Sign(opts) => opts.execute().await,
-            TextSubcommand::Verify(opts) => opts.execute().await,
-            TextSubcommand::Generate(opts) => opts.execute().await,
-            TextSubcommand::Encrypt(opts) => opts.execute().await,
-            TextSubcommand::Decrypt(opts) => opts.execute().await,
-        }
     }
 }
