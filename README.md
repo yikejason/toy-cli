@@ -31,3 +31,9 @@
 ### tower-http 一系列中间件的处理
 - 可自动返回文件的content-type
 - cargo install --path . 把包安装在cargo的根目录下
+
+### trait 回顾
+- FromStr  当一个 &str 需要转成一个enum中的数据类型时 例如本项目中为一些enum实现的例子
+- From<T>  T -> U
+- Try_From<T>  T -> Result<U, E>
+- AsRef<T>  T(ref) -> &U  一个引用到另外一个引用的转换，或者不是引用到另外一个引用的转换
